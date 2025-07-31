@@ -8,6 +8,9 @@ __pycache__/
 *.pyd
 .Python
 *.so
+venv/
+env/
+.venv/
 
 # Database
 data/audit_system.db
