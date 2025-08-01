@@ -45,26 +45,18 @@ def auditee_page():
         + "\n".join(f"- {r['doc']}: {r['desc']}" for r in requests)
     )
     response = bedrock.invoke_model(
-        modelId="amazon.titan-text-lite-v1",
+        modelId="anthropic.claude-v2",
         contentType="application/json",
         accept="application/json",
-        body=json.dumps({"inputText": prompt})
+        body=json.dumps({"prompt": f"\n\nHuman: {prompt}\n\nAssistant:", "max_tokens_to_sample": 1000})
     )
     raw_body = response["body"].read()
     decoded_body = raw_body.decode("utf-8")
 
     # Parse Bedrock response robustly
     body_json = json.loads(decoded_body)
-    if "outputText" in body_json:
-        summary = body_json["outputText"]
-    elif "results" in body_json and body_json["results"]:
-        result0 = body_json["results"][0]
-        summary = (
-            result0.get("outputText")
-            or result0.get("output")
-            or result0.get("generatedText")
-            or decoded_body
-        )
+    if "completion" in body_json:
+        summary = body_json["completion"]
     else:
         summary = decoded_body
 
@@ -100,40 +92,62 @@ def auditee_page():
             )
             blocks = sync_resp["Blocks"]
 
-        # extract lines and compliance
-        lines = [b["Text"] for b in blocks if b["BlockType"] == "LINE"]
-        compliance = {}
-        for r in requests:
-            keyword = r["doc"].split()[0].lower()
-            compliance[r["doc"]] = any(keyword in line.lower() for line in lines)
+        # extract text content
+        extracted_text = " ".join([b["Text"] for b in blocks if b["BlockType"] == "LINE"])
+        
+        # Debug: Show extracted text
+        st.write("**Extracted Text:**", extracted_text[:500] + "..." if len(extracted_text) > 500 else extracted_text)
+        
+        # Use Claude to analyze compliance with lenient prompt
+        compliance_prompt = (
+            f"You are reviewing a document for audit compliance. Be very lenient.\n\n"
+            f"AUDIT REQUEST: {requests[0]['doc']} - {requests[0]['desc']}\n\n"
+            f"DOCUMENT CONTENT: {extracted_text[:1000]}\n\n"
+            f"Does this document relate to, mention, or contain any information about the requested topic? "
+            f"If there's ANY connection or relevance, respond 'COMPLIANT'. "
+            f"Only respond 'NON-COMPLIANT' if completely unrelated."
+        )
+        
+        compliance_resp = bedrock.invoke_model(
+            modelId="anthropic.claude-v2",
+            contentType="application/json",
+            accept="application/json",
+            body=json.dumps({"prompt": f"\n\nHuman: {compliance_prompt}\n\nAssistant:", "max_tokens_to_sample": 500})
+        )
+        
+        compliance_raw = compliance_resp["body"].read().decode("utf-8")
+        compliance_json = json.loads(compliance_raw)
+        
+        if "completion" in compliance_json:
+            compliance_result = compliance_json["completion"]
+        else:
+            compliance_result = compliance_raw
+            
+        # Debug: Show AI response
+        st.write("**AI Analysis:**", compliance_result)
+        
+        is_compliant = "COMPLIANT" in compliance_result.upper() and "NON-COMPLIANT" not in compliance_result.upper()
 
-        if not all(compliance.values()):
-            missing = [doc for doc, ok in compliance.items() if not ok]
-            correction_prompt = (
-                f"You are a compliance assistant. You received the wrong document. "
-                f"OCR detected: {', '.join(lines[:5])}... We were looking for {', '.join(missing)}. "
-                "Generate a message explaining the mismatch and an example of the correct document format."
+        if not is_compliant:
+            st.error("Document marked as non-compliant")
+            # Generate an example of the correct document format via Titan
+            example_prompt = (
+                f"Based on the audit request: {requests[0]['doc']} - {requests[0]['desc']}, "
+                "provide a brief example of what a valid document should look like."
             )
-            corr_resp = bedrock.invoke_model(
-                modelId="amazon.titan-text-lite-v1",
+            example_resp = bedrock.invoke_model(
+                modelId="anthropic.claude-v2",
                 contentType="application/json",
                 accept="application/json",
-                body=json.dumps({"inputText": correction_prompt})
+                body=json.dumps({"prompt": f"\n\nHuman: {example_prompt}\n\nAssistant:", "max_tokens_to_sample": 500})
             )
-            raw = corr_resp["body"].read().decode("utf-8")
-            body_json = json.loads(raw)
-            if "outputText" in body_json:
-                message = body_json["outputText"]
-            elif "results" in body_json and body_json["results"]:
-                result0 = body_json["results"][0]
-                message = (
-                    result0.get("outputText")
-                    or result0.get("output")
-                    or result0.get("generatedText")
-                    or raw
-                )
+            example_raw = example_resp["body"].read().decode("utf-8")
+            example_json = json.loads(example_raw)
+            if "completion" in example_json:
+                example_text = example_json["completion"]
             else:
-                message = raw
-            st.error(message)
+                example_text = example_raw
+            st.info("Here’s what a valid document could look like:")
+            st.write(example_text)
         else:
-            st.success("All requested documents are compliant!")
+            st.success("Document is compliant with audit requirements!")

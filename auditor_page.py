@@ -41,40 +41,7 @@ def auditor_page():
         # override requests to only include the current request with summary
         new_request = {"doc": doc_name, "desc": doc_desc}
 
-        # Generate plain-English summary & example via Titan
-        prompt = (
-            "Summarize this audit request for a non-expert and give one concrete example:\n"
-            f"Document: {doc_name}\nDescription: {doc_desc}"
-        )
-        response = bedrock.invoke_model(
-            modelId="amazon.titan-text-lite-v1",
-            contentType="application/json",
-            accept="application/json",
-            body=json.dumps({"inputText": prompt})
-        )
-        raw_body = response["body"].read()
-        decoded_body = raw_body.decode("utf-8")
-
-        # Parse Bedrock response robustly
-        body_json = json.loads(decoded_body)
-        if "outputText" in body_json:
-            summary = body_json["outputText"]
-        elif "results" in body_json and body_json["results"]:
-            result0 = body_json["results"][0]
-            summary = (
-                result0.get("outputText")
-                or result0.get("output")
-                or result0.get("generatedText")
-                or decoded_body
-            )
-        else:
-            summary = decoded_body
-
-        new_request["summary"] = summary
         requests = [new_request]
-
-        st.subheader("Generated Summary & Example")
-        st.write(summary)
 
         # save back to S3
         s3.put_object(
