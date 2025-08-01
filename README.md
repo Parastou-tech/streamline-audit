@@ -89,19 +89,6 @@ streamlit run app.py
 
 ⸻
 
-### Folder Structure
-
-.
-├── app.py                # Main router for auditor/auditee views
-├── auditor_page.py       # Auditor Dashboard UI & S3 request logic
-├── auditee_page.py       # Auditee Dashboard UI, Textract & Titan logic
-├── create_bucket.py      # Optional script to create S3 bucket
-├── requirements.txt      # Python dependencies
-└── .env                  # Environment variables (AWS keys, BUCKET_NAME)
-
-
-⸻
-
 ### Usage
 	1.	Auditor
 	•	Enter “Document name” and “Description”
