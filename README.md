@@ -105,6 +105,16 @@ streamlit run app.py
 	1.	Fork the repository
 	2.	Create a feature branch
 	3.	Commit your changes and open a pull request
+⸻
+
+### Future UI Implementation 
+<img width="720" height="309" alt="image" src="https://github.com/user-attachments/assets/c16ef556-b013-4634-a103-8dbcc303f476" />
+<img width="720" height="306" alt="image" src="https://github.com/user-attachments/assets/c99acbb1-6185-4a61-9656-13ace7f81b17" />
+<img width="720" height="229" alt="image" src="https://github.com/user-attachments/assets/96a088bd-3ca9-4427-96d6-acd734ee6ee4" />
+<img width="719" height="409" alt="image" src="https://github.com/user-attachments/assets/cca4b978-8a2a-4a12-aa7c-5e21340da479" />
+
+
+
 
 ⸻
 
