@@ -19,12 +19,13 @@ bedrock  = boto3.client("bedrock-runtime", region_name=region)
 BUCKET = os.getenv("BUCKET_NAME", "audit-12-test")
 
 def auditee_page():
-    st.title("Auditee Dashboard")
-    
-    # Logout button
-    if st.button("Logout"):
-        st.session_state['logged_in'] = False
-        st.rerun()
+    col1, col2 = st.columns([10, 1.3])
+    with col1:
+        st.title("Auditor Dashboard")
+    with col2:
+        if st.button("Logout"):
+            st.session_state['logged_in'] = False
+            st.rerun()
 
     # load audit requests
     try:

@@ -19,15 +19,18 @@ bedrock  = boto3.client("bedrock-runtime", region_name=region)
 BUCKET = os.getenv("BUCKET_NAME", "audit-12-test")
 
 def auditor_page():
-    st.title("Auditor Dashboard")
-    
-    # Logout button
-    if st.button("Logout"):
-        st.session_state['logged_in'] = False
-        st.rerun()
+    col1, col2 = st.columns([10, 1.3])
+    with col1:
+        st.title("Auditor Dashboard")
+    with col2:
+        if st.button("Logout"):
+            st.session_state['logged_in'] = False
+            st.rerun()
     with st.form("auditor_form"):
         doc_name = st.text_input("Document name", placeholder="e.g. Coaching Certification")
         doc_desc = st.text_area("Description of the document", placeholder="Describe what you need")
+        col1, col2, col3 = st.columns([2.2, 2, 1])
+    with col3:
         submitted = st.form_submit_button("Send request")
 
     if submitted:

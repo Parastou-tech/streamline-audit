@@ -25,6 +25,8 @@ def main():
             username = st.text_input("Username")
             password = st.text_input("Password", type="password")
             role = st.selectbox("Role", ["Auditor", "Auditee"])
+            col1, col2, col3 = st.columns([5, 2, 1])
+        with col3:
             login_clicked = st.form_submit_button("Log In")
         if login_clicked:
             # Stub for authentication logic
