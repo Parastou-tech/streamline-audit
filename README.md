@@ -114,10 +114,3 @@ streamlit run app.py
 <img width="719" height="409" alt="image" src="https://github.com/user-attachments/assets/cca4b978-8a2a-4a12-aa7c-5e21340da479" />
 
 
-
-
-⸻
-
-License
-
-This project is licensed under the MIT License.
