@@ -57,8 +57,7 @@ A minimal, serverless proof-of-concept that streamlines a university audit workf
 Local Setup
 
 #### Clone the repository
-git clone https://github.com/your-org/audit-agent.git
-cd audit-agent
+git clone https://github.com/Parastou-tech/streamline-audit.git 
 
 #### Create and activate a virtual environment
 python3 -m venv venv
